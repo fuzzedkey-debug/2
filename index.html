@@ -1,1 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Визитка команды ТВИД</title>
+<style>
+:root{
+  --bg:#f6f7f9; --ink:#0f1b2d; --muted:#5b6678; --line:#d9dde4; --accent:#2447f5; --card:#e8ebf1;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0e1522;--ink:#eef1f6;--muted:#9aa5b8;--line:#26324a;--accent:#7c95ff;--card:#18223a;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#0e1522;--ink:#eef1f6;--muted:#9aa5b8;--line:#26324a;--accent:#7c95ff;--card:#18223a;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:clamp(20px,5vw,56px) clamp(16px,4vw,40px) 40px}
+<div class="physics-moto">
+   Сила нашей команды в ньютонах, 
+  <span>а суперсила - в суперньютонах!<span>
+  <div>
+  .physics-moto {
+    font:italic 700 clamp(1.35rem,3.5vw,
+h1{font:700 clamp(2.2rem,7vw,4.4rem)/1.02 Georgia,"Iowan Old Style","Times New Roman",serif;letter-spacing:-.02em;margin:0 0 14px}
+.motto{font:italic clamp(1.1rem,2.6vw,1.5rem)/1.35 Georgia,"Iowan Old Style",serif;color:var(--accent);margin:0 0 28px;max-width:34ch}
+figure{margin:0}
+.ph{all:unset;box-sizing:border-box;display:block;position:relative;width:100%;overflow:hidden;border-radius:6px;background:var(--card);touch-action:manipulation}
+button.ph{cursor:pointer}
+button.ph:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.group .ph{aspect-ratio:3/2}
+.ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s ease;pointer-events:none}
+.ph video.on{opacity:1}
+.dots{display:flex;gap:6px;margin-top:10px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .25s}
+.dots i.on{background:var(--accent)}
+.hint{font-size:.9rem;color:var(--muted);margin:14px 0 40px}
+h2{font:600 1.25rem/1.2 Georgia,"Iowan Old Style",serif;margin:0 0 16px;padding-top:14px;border-top:1px solid var(--line)}
+.team{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px 16px}
+.team .ph{aspect-ratio:4/5}
+.name{font-weight:600;margin-top:10px}
+.role{font-size:.9rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.ph video{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="team-name"></h1>
+  <p class="motto" id="motto"></p>
+  <figure class="group" id="group"></figure>
+  <p class="hint">Наведите курсор или нажмите на общее фото, чтобы увидеть другой кадр.</p>
+  <h2>Состав команды</h2>
+  <div class="team" id="team"></div>
+</main>
 
+<script>
+function ph(text, hue){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect width="400" height="500" fill="hsl('+hue+',45%,38%)"/>'+
+  '<circle cx="200" cy="200" r="70" fill="hsl('+hue+',45%,52%)"/><rect x="95" y="290" width="210" height="260" rx="105" fill="hsl('+hue+',45%,52%)"/>'+
+  '<text x="200" y="470" font-family="sans-serif" font-size="26" fill="#fff" text-anchor="middle">'+text+'</text></svg>';
+  return 'data:image/svg+xml,'+encodeURIComponent(svg);
+}
+var TEAM={
+  name:'ТВИД - Терпеливые Воины Интелектуального Движения',
+  motto:'Возможно всё. На невозможное нужно немного больше времени',
+  /* Общее фото: 3 кадра по кругу. Видео i играет при переходе от кадра i к следующему
+     (1→2, 2→3, 3→1). */
+  group:{
+    photos:['photos/group-1.jpg', 'photos/group-2.jpg', 'photos/group-3.jpg'],
+    videos:['videos/transition-1-2.mp4','videos/transition-2-3.mp4','videos/transition-3-1.mp4']
+  },
+  members:[
+  {name:'Коробкин Илья', role:'Капитан', photo:'photos/iliya.jpg'},
+  {name:'Мокей Артем', role:'Аналитик', photo:'photos/artem.jpg'},
+  {name:'Уваров Денис', role:'Фасилитатор', photo:'photos/denis.jpg'},
+  {name:'Бережная Мария', role:'Факт-чекер', photo:'photos/maria.jpg'},
+
+]
+};
+/* ====== КОНЕЦ НАСТРОЕК ====== */
+
+var canHover=window.matchMedia('(hover: hover)').matches;
+/* Что запускает видеопереход на общем фото:
+   'both' — наведение и нажатие, 'hover' — наведение (на телефоне — нажатие), 'click' — только нажатие */
+var TRIGGER='both';
+var REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Фото участника: одно, без смены кадров */
+function portrait(parent,src,alt){
+  var d=document.createElement('div'); d.className='ph';
+  var im=document.createElement('img'); im.src=src; im.alt=alt;
+  d.appendChild(im); parent.appendChild(d);
+}
+
+/* Общее фото: кадры по кругу, между ними играет видеопереход, затем появляется статичное фото */
+function videoGallery(parent,cfg,alt){
+  var n=cfg.photos.length,i=0,busy=false,last='mouse';
+  var btn=document.createElement('button');
+  btn.type='button'; btn.className='ph'; btn.setAttribute('aria-label',alt+': сменить кадр');
+  var img=document.createElement('img'); btn.appendChild(img);
+  var vids=cfg.videos.map(function(){
+    var v=document.createElement('video');
+    v.muted=true; v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.preload='none';
+    v.setAttribute('aria-hidden','true'); btn.appendChild(v); return v;
+  });
+  var dots=document.createElement('div'); dots.className='dots';
+  for(var k=0;k<n;k++)dots.appendChild(document.createElement('i'));
+  function render(){
+    img.src=cfg.photos[i]; img.alt=alt+', кадр '+(i+1)+' из '+n;
+    [].forEach.call(dots.children,function(d,j){d.classList.toggle('on',j===i);});
+  }
+  function prime(j){ /* подгружаем видео и фото, которые понадобятся следующими */
+    var v=vids[j]; if(v&&!v.getAttribute('src'))v.src=cfg.videos[j]; if(v)v.preload='auto';
+    new Image().src=cfg.photos[(j+1)%n];
+  }
+  function finish(v){
+    i=(i+1)%n; render(); v.classList.remove('on');
+    busy=false; btn.removeAttribute('aria-busy'); prime(i);
+  }
+  function next(){
+    if(busy)return;
+    busy=true; btn.setAttribute('aria-busy','true');
+    var v=vids[i];
+    if(REDUCED||!v){finish(v||{classList:{remove:function(){}}});return;}
+    var done=false,t;
+    function end(){if(done)return;done=true;clearTimeout(t);v.onended=v.onerror=v.onplaying=null;finish(v);}
+    v.onended=end; v.onerror=end;
+    v.onplaying=function(){v.classList.add('on');};
+    t=setTimeout(function(){if(!v.classList.contains('on'))end();},8000); /* видео не стартовало — просто меняем фото */
+    try{v.currentTime=0;}catch(e){}
+    var p=v.play(); if(p&&p.catch)p.catch(end);
+  }
+  btn.addEventListener('pointerdown',function(e){last=e.pointerType;});
+  if(canHover&&TRIGGER!=='click'){
+    btn.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')next();});
+  }
+  btn.addEventListener('click',function(e){
+    if(TRIGGER==='hover'&&last==='mouse'&&e.detail>0)return;
+    next();
+  });
+  parent.appendChild(btn); parent.appendChild(dots);
+  render(); prime(0);
+}
+
+document.title=TEAM.name;
+document.getElementById('team-name').textContent=TEAM.name;
+document.getElementById('motto').textContent='«'+TEAM.motto+'»';
+videoGallery(document.getElementById('group'),TEAM.group,'Общее фото команды');
+var box=document.getElementById('team');
+TEAM.members.forEach(function(m){
+  var f=document.createElement('figure');
+  portrait(f,m.photo,m.name+', '+m.role);
+  var n=document.createElement('div'); n.className='name'; n.textContent=m.name;
+  var r=document.createElement('div'); r.className='role'; r.textContent=m.role;
+  f.appendChild(n); f.appendChild(r); box.appendChild(f);
+});
+</script>
+</body>
+</html>
